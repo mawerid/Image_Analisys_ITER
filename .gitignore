@@ -1,0 +1,7 @@
+*.zip
+*.cache
+data_scales/
+data_resized/
+train/
+valid/
+labels/
