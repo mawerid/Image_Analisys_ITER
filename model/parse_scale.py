@@ -1,6 +1,7 @@
 import easyocr
 import re
 
+
 def parser(img):
     reader = easyocr.Reader(['en'])
     # result = reader.readtext(input, allowlist='0123456789')

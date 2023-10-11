@@ -4,10 +4,10 @@ import numpy as np
 # import matplotlib.pyplot as plt
 import cv2 as cv
 # import pylab
-from parse_scale import parser
-from kmeans import kmeans
-from common import detector
-from util import *
+from model.parse_scale import parser
+from model.kmeans import kmeans
+from model.common import detector
+from model.util import *
 
 
 # Пока что работает складно, если только грузить изображение в папку с проектом!
@@ -18,14 +18,15 @@ from util import *
 # python detect_particles.py 1.png 0
 
 def yolo_detect(image_path, size):
-    os.system("python yolov7/detect.py --weights yolov7/runs/train/yolov7-tiny-custom3/weights/best.pt --save-txt --no-trace --img-size " + str(size) + " --source " + image_path)
+    os.system("python yolov7/detect.py --weights yolov7/runs/train/yolov7-tiny-custom3/weights/best.pt --save-txt --no-trace --img-size " +
+              str(size) + " --source " + image_path)
     filename = "runs/detect/exp/labels/" + image_path[-11:-3] + 'txt'
-    
+
     size_x = []
     size_y = []
     sizes = []
     coordinates = []
-    
+
     with open(filename) as labels:
         for line in labels:
             lst = line.split()
@@ -34,16 +35,14 @@ def yolo_detect(image_path, size):
             size_x.append(round(lst[3]*size))
             size_y.append(round(lst[4]*size))
             sizes.append((round(lst[3]*size) + round(lst[4]*size)) // 2)
-            
+
     return (coordinates, sizes)
-            
-    
-    
+
 
 def main() -> int:
     # load image path
     # image_path = sys.argv[1]
-    image_path = os.path.join('data_resized',"image_9.png")
+    image_path = os.path.join('data_resized', "image_9.png")
     print(image_path)
     # choose type of detection
     # 0 - YOLO
@@ -61,25 +60,23 @@ def main() -> int:
     copy_image = image.copy()
     # get it in gray shades
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    image = cv2.resize(image, (640,640), interpolation = cv2.INTER_AREA)
-    
+    image = cv2.resize(image, (640, 640), interpolation=cv2.INTER_AREA)
+
     height, width = image.shape
     # divide picture in 2 parts (photo and info)
     # info = image[width:height, 0:width]
     # image = image[0:width, 0:width]
-    
 
-    #run YOLO
+    # run YOLO
     coordinates, sizes = yolo_detect(image_path, width)
     # sizes = np.array(sizes)
     # sizes = np.sqrt(sizes / np.pi) # это не успели доработать просто
-        
-        
+
     # coordinates = np.array(coordinates)
-    #run parsing of scale
+    # run parsing of scale
     # scale, units = parser(info)
     # sizes = sizes * (scale / width)
-    
+
     # Этот код должен выводить гистограмму и картинку, однако у нас отказала библиотека в послений момент
     # Если не работает, то закомментируйте этот код
     # generate gistogramm of masses and save it
@@ -88,7 +85,7 @@ def main() -> int:
     # plt.ylabel("Particles count")
     # plt.legend(["Distribution of sizes"])
     # plt.savefig("Distribution.png")
-    
+
     # И этот тоже
     # Display the resulting image with particle centers marked
     # for i, coords in enumerate(coordinates):
@@ -97,26 +94,11 @@ def main() -> int:
     #                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
     # pylab.figure(0)
     # pylab.imshow(image)
-    
+
     # save csv files (without units)
     np.savetxt(image_path[:-4] + '_sizes.csv', sizes, delimiter=',')
-    np.savetxt(image_path[:-4] + '_coordinates.csv', coordinates, delimiter=',')
-    
-    return 0
-
-
-def test():
-    import shutil
-    labels = os.listdir('labels/')
-    # file = labels[0]
-    # src = f'D:/task/task/data_resized/{file[:-3]}png'
-    # dest = 'D:/task/task/data/train'
-    # shutil.copy(src, dest)
-    for i in labels:
-        src = f'D:/task/task/data_resized/{i[:-3]}png'
-        dest = 'D:/task/task/data/train'
-        shutil.copy(src, dest)
-
+    np.savetxt(image_path[:-4] + '_coordinates.csv',
+               coordinates, delimiter=',')
 
     return 0
 
@@ -124,4 +106,3 @@ def test():
 if __name__ == '__main__':
     #Rename(os.path.join(os.getcwd(), "images"))
     main()
-    # train_allocate()

@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+from typing import Union, List
 
 def kmeans_color_quantization(image, clusters=8, rounds=1):
     h, w = image.shape[:2]
