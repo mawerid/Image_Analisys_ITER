@@ -1,5 +1,4 @@
 import os
-import sys
 import numpy as np
 # import matplotlib.pyplot as plt
 import cv2 as cv
@@ -30,26 +29,21 @@ def detect(image_path, size) -> Tuple[List, List]:
     return (coordinates, sizes)
 
 
-def graph():
+def graph(image_name: str) -> None:
     pass
 
-def loadImage():
+
+def loadImage(image_name: str) -> np.ndarray:
     pass
 
-def run() -> int:
-    # load image path
-    # image_path = sys.argv[1]
 
-    image_path = os.path.join('data_resized', "56-100.png")
-    print(image_path)
-
-    # load image
-    image = cv.imread(image_path)
+def run(image: np.ndarray, image_name: str) -> np.ndarray:
     copy_image = image.copy()
     # get it in gray shades
     image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 
     height, width = image.shape
+    
     # divide picture in 2 parts (photo and info)
     info = image[width:height, 0:width]
     image = image[0:width, 0:width]
@@ -57,14 +51,14 @@ def run() -> int:
     height, width = image.shape
 
     # run YOLO
-    coordinates, sizes = detect(image_path, width)
+    coordinates, sizes = detect(image, width)
     print(sizes)
     sizes = np.array(sizes)
     sizes = np.sqrt(sizes / np.pi)  # это не успели доработать просто
 
     coordinates = np.array(coordinates)
     # run parsing of scale
-    scale, units = parser(info)
+    scale, units = parse(info, image_name)
     print(scale, units)
     sizes = sizes * (scale / width)
 
@@ -91,4 +85,4 @@ def run() -> int:
     # np.savetxt(image_path[:-4] + '_coordinates.csv',
     #            coordinates, delimiter=',')
 
-    return 0
+    return image

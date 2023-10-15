@@ -2,8 +2,10 @@
 *.cache
 data_scales/
 data_resized/
+data_test/
 train/
 valid/
 labels/
 full/
+runs/
 *.pyc

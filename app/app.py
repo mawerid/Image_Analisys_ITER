@@ -1,5 +1,6 @@
 import os
-
+import numpy as np
+import cv2 as cv
 import tkinter as tk
 from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
@@ -23,7 +24,7 @@ class App(tk.Tk):
         super().__init__()
         self._started = 0
         self.title("Graph Illustration")
-        self.geometry("1280x720")
+        self.geometry("1440x900")
 
         self.files = []
 
@@ -48,31 +49,24 @@ class App(tk.Tk):
             image_path = os.path.join(
                 self.directory_path, self.image_files[self.current_image_index])
             print(image_path)
-            image = Image.open(image_path)
+            image = cv.imread(image_path)
+            image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 
-            # Resize images if necessary
-            max_width = 480
-            max_height = 640
-            width, height = image.size
-            if width > max_width or height > max_height:
-                ratio = min(max_width / width, max_height / height)
-                new_width = int(width * ratio)
-                new_height = int(height * ratio)
-                image = image.resize((new_width, new_height), Image.LANCZOS)
-
-            photo = ImageTk.PhotoImage(image)
+            image_copy = image.copy()
+            photo = self.prepare_image(image)
 
             self.image1_label.config(image=photo)
             self.image1_label.image = photo
 
             if not self.processed_image[self.current_image_index]:
-                conv_image = self.run_ml_algorithm(image)
+                conv_image = self.run_ml_algorithm(image_copy)
                 self.processed_image[self.current_image_index] = True
             else:
-                conv_image = loadImage(
-                    self.image_files[self.current_image_index])
+                conv_image = image_copy
+                # conv_image = loadImage(
+                # self.image_files[self.current_image_index])
 
-            conv_photo = ImageTk.PhotoImage(conv_image)
+            conv_photo = self.prepare_image(conv_image)
 
             self.image2_label.config(image=conv_photo)
             self.image2_label.image = conv_photo
@@ -87,10 +81,21 @@ class App(tk.Tk):
             self.current_image_index += 1
             self.show_current_image()
 
-    def run_ml_algorithm(self, image):
+    def prepare_image(self, image: np.ndarray) -> ImageTk.PhotoImage:
+        if type(image) != np.ndarray:
+            return None
+
+        if image.shape != (512, 572):
+            image = cv.resize(
+                image, (512, 572), interpolation=cv.INTER_AREA)
+
+        image = Image.fromarray(image)
+        return ImageTk.PhotoImage(image)
+
+    def run_ml_algorithm(self, image) -> np.ndarray:
         if self.current_image_index >= 0 and self.current_image_index < len(self.image_files) - 1:
-            # return image
-            return run(image, self.image_files[self.current_image_index])
+            return image
+            # return run(image, self.image_files[self.current_image_index])
 
     def draw_graph(self):
         if self.current_image_index >= 0 and self.current_image_index < len(self.image_files) - 1:
@@ -105,7 +110,6 @@ class App(tk.Tk):
                              padx=(2, 2), pady=(2, 2), sticky='nsew')
 
         # Image area
-        # self.images = []
         self.current_image_index = -1
 
         # Navigation buttons
