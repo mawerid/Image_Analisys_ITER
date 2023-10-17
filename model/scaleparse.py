@@ -1,57 +1,56 @@
 import easyocr
 import re
 import numpy as np
+import os
 from typing import Tuple
 
-file_scale_path = "scales.csv"
+file_scale_path = os.path.join("meta", "scales.csv")
 
 
-def parse(image: np.ndarray, image_name: str) -> Tuple[int, str]:
+def parse(image: np.ndarray, image_name: str) -> Tuple[int, str, int]:
+    resolution = load(image_name)
+    if resolution != None:
+        return resolution
+
     reader = easyocr.Reader(['en'])
 
-    config = ('-l eng --oem 1 --psm 3')
+    height, width = image.shape
+    image = image[0:height, (width//2):width]
+
     result = reader.readtext(image, detail=0, paragraph=True)
 
-    reslist = str(result).split(":")
-    p = '[\d]+[.,\d]+|[\d]*[.][\d]+|[\d]+'
+    resolution, units = result[1].split()
+    resolution = int(resolution)
 
-    for i in range(len(reslist)):
-        if (reslist[i].find("field") != -1):
-            t = reslist[i+1]
-            num = float(re.findall(p, t)[0])
-            tt = t.split()[1][:2]
-            if tt.find("u") != -1:
-                resolution = num
-            else:
-                resolution = (num*1000)
+    save(image_name, resolution, units, width)
 
-            save(image_name, resolution)
-
-            return resolution, 'um'
+    return resolution, units, width
 
 
-def save(image_name: str, resolution: int) -> None:
+def save(image_name: str, resolution: int, units: str, width: int) -> None:
     try:
         data = np.genfromtxt(file_scale_path, delimiter=',', dtype=str)
     except FileNotFoundError:
-        data = np.array([]).reshape(0, 2)
+        data = np.array([]).reshape(0, 4)
 
-    new_data = np.array([image_name, str(resolution)])
-    data = np.vstack((data, new_data))
+    new_data = np.array([image_name, str(resolution), units, str(width)])
+    data = np.vstack([data, new_data])
 
     np.savetxt(file_scale_path, data, delimiter=',', fmt='%s')
 
 
-def load(image_name: str) -> int:
+def load(image_name: str) -> Tuple[int, str, int]:
     try:
         data = np.genfromtxt(file_scale_path, delimiter=',', dtype=str)
     except FileNotFoundError:
         return None
 
-    row = np.where(data[:, 0] == image_name)
+    row = np.where(data[:] == image_name)
 
-    if len(row) > 0:
-        resolution = int(data[row][0][1])
-        return resolution, 'um'
+    if len(row[0]) > 0:
+        resolution = int(data[row[0][0]][1])
+        units = data[row[0][0]][2]
+        width = int(data[row[0][0]][3])
+        return resolution, units, width
     else:
         return None

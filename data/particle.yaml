@@ -1,0 +1,7 @@
+train: ../../train/images 
+val: ../../train/images
+test: ../../train/images
+
+# Classes
+nc: 1  # number of classes
+names: ['particle']  # class names

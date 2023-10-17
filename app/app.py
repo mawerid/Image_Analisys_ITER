@@ -4,11 +4,12 @@ import cv2 as cv
 import tkinter as tk
 from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
+from typing import Tuple
 
 import matplotlib
 import matplotlib.pyplot as plt
 
-from model.model import run, graph, loadImage
+from model.model import run, graph
 matplotlib.use("TkAgg")
 
 
@@ -24,7 +25,7 @@ class App(tk.Tk):
         super().__init__()
         self._started = 0
         self.title("Graph Illustration")
-        self.geometry("1440x900")
+        self.geometry("1440x700")
 
         self.files = []
 
@@ -35,7 +36,7 @@ class App(tk.Tk):
             ).endswith((".jpg", ".png", ".gif", ".bmp", ".jpeg"))]
             print(self.image_files)
 
-            self.processed_image = [False for x in self.image_files]
+            # self.processed_image = [False for x in self.image_files]
 
             if self.image_files:
                 self.current_image_index = 0
@@ -58,13 +59,16 @@ class App(tk.Tk):
             self.image1_label.config(image=photo)
             self.image1_label.image = photo
 
-            if not self.processed_image[self.current_image_index]:
-                conv_image = self.run_ml_algorithm(image_copy)
-                self.processed_image[self.current_image_index] = True
-            else:
-                conv_image = image_copy
-                # conv_image = loadImage(
-                # self.image_files[self.current_image_index])
+            conv_image, self.resolution, self.scale = self.run_ml_algorithm(
+                image_copy)
+
+            # if not self.processed_image[self.current_image_index]:
+            #     conv_image, self.resolution, self.scale = self.run_ml_algorithm(
+            #         image_copy)
+            #     self.processed_image[self.current_image_index] = True
+            # else:
+            #     conv_image, self.resolution, self.scale = loadImage(
+            #         self.image_files[self.current_image_index])
 
             conv_photo = self.prepare_image(conv_image)
 
@@ -92,13 +96,12 @@ class App(tk.Tk):
         image = Image.fromarray(image)
         return ImageTk.PhotoImage(image)
 
-    def run_ml_algorithm(self, image) -> np.ndarray:
-        if self.current_image_index >= 0 and self.current_image_index < len(self.image_files) - 1:
-            return image
-            # return run(image, self.image_files[self.current_image_index])
+    def run_ml_algorithm(self, image) -> Tuple[np.ndarray, int, str]:
+        if self.current_image_index >= 0 and self.current_image_index < len(self.image_files):
+            return run(image, self.image_files[self.current_image_index])
 
     def draw_graph(self):
-        if self.current_image_index >= 0 and self.current_image_index < len(self.image_files) - 1:
+        if self.current_image_index >= 0 and self.current_image_index < len(self.image_files):
             graph(self.image_files[self.current_image_index])
             plt.show()
 

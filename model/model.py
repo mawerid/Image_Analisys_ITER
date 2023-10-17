@@ -1,88 +1,109 @@
 import os
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+import seaborn as sns
 import cv2 as cv
-# import pylab
-from model.scaleparse import parse
-from typing import Tuple, List
+import model.scaleparse as scale
+from typing import Tuple
+import detect
 
 
-def detect(image_path, size) -> Tuple[List, List]:
-    os.system("python yolov7/detect.py --weights weights/yolov7-tiny_custom_5/weights/best.pt --save-txt --no-trace --img-size " +
-              str(size) + " --source " + image_path)
-    filename = "runs/detect/exp/labels/" + image_path[-11:-3] + 'txt'
+weights_path = os.path.join(
+    "weights", "yolov7-custom101t", "weights", "best.pt")
+project_path = "detected"
 
-    size_x = []
-    size_y = []
-    sizes = []
-    coordinates = []
 
-    with open(filename) as labels:
-        for line in labels:
-            lst = line.split()
-            lst = [float(x) for x in lst]
-            coordinates.append((round(lst[1]*size), round(lst[2]*size)))
-            size_x.append(round(lst[3]*size))
-            size_y.append(round(lst[4]*size))
-            sizes.append((round(lst[3]*size) + round(lst[4]*size)) // 2)
+def yolo(image_name: str, size: int) -> None:
+    image_path = os.path.join("data_resized", image_name)
 
-    return (coordinates, sizes)
+    detect.main(['--weights', weights_path, '--source', image_path,
+                 '--img-size', str(size), '--save-txt', '--no-trace',
+                 '--project', project_path, '--name', image_name[:-4]])  # , '--nosave'])
 
 
 def graph(image_name: str) -> None:
-    pass
+    resolution, units, width = scale.load(image_name)
+
+    sizes = getSizes(loadLabels(image_name), width)
+    sizes = sizes * (resolution / width)
+
+    sns.set_theme()
+    plt.hist(sizes)
+    plt.xlabel("Scale," + units)
+    plt.ylabel("Particles count")
+    plt.legend(["Distribution of sizes"])
 
 
-def loadImage(image_name: str) -> np.ndarray:
-    pass
+def loadImage(image_name: str, info: np.ndarray) -> Tuple[np.ndarray, int, str]:
+    resolution, units, _ = scale.load(image_name)
+    # coordinates = getCoor(loadLabels(image_name), width)
+
+    # for coords in coordinates:
+    #     cv.circle(image, (coords[0], coords[1]), 3, (0, 0, 255), -1)
+    path = os.path.join(
+        project_path, image_name[:-4], image_name)
+    image = cv.imread(path)
+    if type(info) == np.ndarray and info.size > 0:
+        info = cv.cvtColor(info, cv.COLOR_GRAY2RGB)
+        info = cv.resize(info, (640, 75), interpolation=cv.INTER_AREA)
+        image = np.vstack([image, info])
+
+    return cv.imread(path), resolution, units
 
 
-def run(image: np.ndarray, image_name: str) -> np.ndarray:
-    copy_image = image.copy()
-    # get it in gray shades
-    image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+def loadLabels(image_name: str) -> np.ndarray:
+    path = os.path.join(
+        project_path, image_name[:-4], "labels", image_name[:-3] + 'txt')
+    return np.loadtxt(path)
 
+
+def getSizes(labels: np.ndarray, size: int) -> np.ndarray:
+    sizes = []
+    for label in labels:
+        sizes.append((round(label[3]*size) + round(label[4]*size)) // 2)
+    sizes = np.array(sizes)
+    sizes = np.sqrt(sizes / np.pi)
+    return sizes
+
+
+def getCoor(labels: np.ndarray, size: int) -> np.ndarray:
+    coordinates = []
+    for label in labels:
+        coordinates.append((round(label[1]*size), round(label[2]*size)))
+    return np.array(coordinates)
+
+
+def run(image: np.ndarray, image_name: str) -> Tuple[np.ndarray, int, str]:
     height, width = image.shape
-    
+    info = None
+
+    if scale.load(image_name) != None:
+        return loadImage(image_name, image[width:height, 0:width]), scale.load(image_name)
+
     # divide picture in 2 parts (photo and info)
-    info = image[width:height, 0:width]
-    image = image[0:width, 0:width]
+    if height != width:
+        info = image[width:height, 0:width]
+        image = image[0:width, 0:width]
+        _, _, _ = scale.parse(info, image_name)
+        # info = cv.resize(info, (640, 75), interpolation=cv.INTER_AREA)
+
     image = cv.resize(image, (640, 640), interpolation=cv.INTER_AREA)
     height, width = image.shape
 
+    image_path = os.path.join("data_resized", image_name)
+    cv.imwrite(image_path, image)
+
     # run YOLO
-    coordinates, sizes = detect(image, width)
-    print(sizes)
-    sizes = np.array(sizes)
-    sizes = np.sqrt(sizes / np.pi)  # это не успели доработать просто
-
-    coordinates = np.array(coordinates)
-    # run parsing of scale
-    scale, units = parse(info, image_name)
-    print(scale, units)
-    sizes = sizes * (scale / width)
-
-    # Этот код должен выводить гистограмму и картинку, однако у нас отказала библиотека в послений момент
-    # Если не работает, то закомментируйте этот код
-    # generate gistogramm of masses and save it
-    # plt.hist(sizes)
-    # plt.xlabel("Scale, " + units)
-    # plt.ylabel("Particles count")
-    # plt.legend(["Distribution of sizes"])
-    # plt.savefig("Distribution.png")
+    yolo(image_name, width)
+    # coordinates = getCoor(loadLabels(image_name), width)
+    # sizes = getSizes(loadLabels(image_name), width)
+    # print(coordinates)
+    # print(sizes)
 
     # И этот тоже
     # Display the resulting image with particle centers marked
-    # for i, coords in enumerate(coordinates):
-    #     cv2.circle(image, (coords[0], coords[1]), 3, (0, 0, 255), -1)
-    #     cv2.putText(image, f"{sizes[i]:.2f}", (coords[0] + 5, coords[1] - 5),
-    #                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-    # pylab.figure(0)
-    # pylab.imshow(image)
-
-    # save csv files (without units)
-    # np.savetxt(image_path[:-4] + '_sizes.csv', sizes, delimiter=',')
-    # np.savetxt(image_path[:-4] + '_coordinates.csv',
-    #            coordinates, delimiter=',')
-
-    return image
+    # for coords in coordinates:
+    #     cv.circle(image, (coords[0], coords[1]), 3, (0, 0, 0), -1)
+    # cv.putText(image, f"{sizes[i]:.2f}", (coords[0] + 5, coords[1] - 5),
+    #            cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+    return loadImage(image_name, info)
