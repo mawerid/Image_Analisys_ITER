@@ -36,8 +36,6 @@ class App(tk.Tk):
             ).endswith((".jpg", ".png", ".gif", ".bmp", ".jpeg"))]
             print(self.image_files)
 
-            # self.processed_image = [False for x in self.image_files]
-
             if self.image_files:
                 self.current_image_index = 0
                 self.show_current_image()
@@ -61,14 +59,6 @@ class App(tk.Tk):
 
             conv_image, self.resolution, self.scale = self.run_ml_algorithm(
                 image_copy)
-
-            # if not self.processed_image[self.current_image_index]:
-            #     conv_image, self.resolution, self.scale = self.run_ml_algorithm(
-            #         image_copy)
-            #     self.processed_image[self.current_image_index] = True
-            # else:
-            #     conv_image, self.resolution, self.scale = loadImage(
-            #         self.image_files[self.current_image_index])
 
             conv_photo = self.prepare_image(conv_image)
 

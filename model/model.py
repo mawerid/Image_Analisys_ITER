@@ -18,7 +18,7 @@ def yolo(image_name: str, size: int) -> None:
 
     detect.main(['--weights', weights_path, '--source', image_path,
                  '--img-size', str(size), '--save-txt', '--no-trace',
-                 '--project', project_path, '--name', image_name[:-4]])  # , '--nosave'])
+                 '--project', project_path, '--name', image_name[:-4]])
 
 
 def graph(image_name: str) -> None:
@@ -36,10 +36,6 @@ def graph(image_name: str) -> None:
 
 def loadImage(image_name: str, info: np.ndarray) -> Tuple[np.ndarray, int, str]:
     resolution, units, _ = scale.load(image_name)
-    # coordinates = getCoor(loadLabels(image_name), width)
-
-    # for coords in coordinates:
-    #     cv.circle(image, (coords[0], coords[1]), 3, (0, 0, 255), -1)
     path = os.path.join(
         project_path, image_name[:-4], image_name)
     image = cv.imread(path)
@@ -48,7 +44,7 @@ def loadImage(image_name: str, info: np.ndarray) -> Tuple[np.ndarray, int, str]:
         info = cv.resize(info, (640, 75), interpolation=cv.INTER_AREA)
         image = np.vstack([image, info])
 
-    return cv.imread(path), resolution, units
+    return image, resolution, units
 
 
 def loadLabels(image_name: str) -> np.ndarray:
@@ -78,14 +74,15 @@ def run(image: np.ndarray, image_name: str) -> Tuple[np.ndarray, int, str]:
     info = None
 
     if scale.load(image_name) != None:
-        return loadImage(image_name, image[width:height, 0:width]), scale.load(image_name)
+        image, resolution, units = loadImage(
+            image_name, image[width:height, 0:width])
+        return image, resolution, units
 
     # divide picture in 2 parts (photo and info)
     if height != width:
         info = image[width:height, 0:width]
         image = image[0:width, 0:width]
         _, _, _ = scale.parse(info, image_name)
-        # info = cv.resize(info, (640, 75), interpolation=cv.INTER_AREA)
 
     image = cv.resize(image, (640, 640), interpolation=cv.INTER_AREA)
     height, width = image.shape
@@ -95,15 +92,6 @@ def run(image: np.ndarray, image_name: str) -> Tuple[np.ndarray, int, str]:
 
     # run YOLO
     yolo(image_name, width)
-    # coordinates = getCoor(loadLabels(image_name), width)
-    # sizes = getSizes(loadLabels(image_name), width)
-    # print(coordinates)
-    # print(sizes)
 
-    # И этот тоже
-    # Display the resulting image with particle centers marked
-    # for coords in coordinates:
-    #     cv.circle(image, (coords[0], coords[1]), 3, (0, 0, 0), -1)
-    # cv.putText(image, f"{sizes[i]:.2f}", (coords[0] + 5, coords[1] - 5),
-    #            cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-    return loadImage(image_name, info)
+    image, resolution, units = loadImage(image_name, info)
+    return image, resolution, units
