@@ -1,8 +1,7 @@
 *.zip
 *.cache
 data_scales/
-data_resized/
-data_test/
+data_test*
 train/
 valid/
 labels/
