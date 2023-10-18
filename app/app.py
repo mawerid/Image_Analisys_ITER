@@ -26,8 +26,8 @@ class App(tk.Tk):
         self._started = 0
         self.title("Graph Illustration")
         self.geometry("1440x700")
-
-        self.files = []
+        self.current_image_index = -1
+        self.image_files = []
 
     def load_directory(self, entry):
         self.directory_path = filedialog.askdirectory()
@@ -50,6 +50,7 @@ class App(tk.Tk):
             print(image_path)
             image = cv.imread(image_path)
             image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+            self.image_shape = image.shape
 
             image_copy = image.copy()
             photo = self.prepare_image(image)
@@ -64,6 +65,19 @@ class App(tk.Tk):
 
             self.image2_label.config(image=conv_photo)
             self.image2_label.image = conv_photo
+
+            self.info_value1.config(text=self.info_label1.cget(
+                "text") + self.image_files[self.current_image_index])
+            self.info_value1.text = self.info_label1.cget(
+                "text") + self.image_files[self.current_image_index]
+            self.info_value2.config(
+                text=self.info_label2.cget("text") + str(self.image_shape))
+            self.info_value2.text = self.info_label2.cget(
+                "text") + str(self.image_shape)
+            self.info_value3.config(text=self.info_label3.cget(
+                "text") + (str(self.resolution) + self.scale))
+            self.info_value3.text = self.info_label3.cget(
+                "text") + (str(self.resolution) + self.scale)
 
     def show_previous_image(self):
         if self.current_image_index > 0:
@@ -166,13 +180,39 @@ class App(tk.Tk):
         self.upload_entry = ttk.Entry(self.upload_section, width=20)
         self.upload_entry.pack(side=tk.BOTTOM, padx=(5, 5))
 
+        # Info section
+        self.info_section = ttk.Frame(self.right_frame, padding=(7, 7))
+        self.info_section.grid(row=2, column=0, rowspan=3, pady=(7, 7))
+
+        self.info_label1 = ttk.Label(
+            self.info_section, text="Image name: ", font=("TkDefaultFont", 11))
+        self.info_label1.grid(row=0, column=0, padx=(7, 7), pady=(7, 7))
+        # self.info_label1.pack(side = tk.LEFT)
+        self.info_value1 = ttk.Label(
+            self.info_section, text="", font=("TkDefaultFont", 11))
+        # self.info_value1.grid(row=0, column=1, pady=(3, 3), padx=(0, 3))
+
+        self.info_label2 = ttk.Label(
+            self.info_section, text="Image size: ", font=("TkDefaultFont", 11))
+        self.info_label2.grid(row=1, column=0, padx=(7, 7), pady=(7, 7))
+        self.info_value2 = ttk.Label(
+            self.info_section, text="", font=("TkDefaultFont", 11))
+        # self.info_value2.grid(row=1, column=1, pady=(3, 3), padx=(0, 3))
+
+        self.info_label3 = ttk.Label(
+            self.info_section, text="Scale: ", font=("TkDefaultFont", 11))
+        self.info_label3.grid(row=2, column=0, padx=(7, 7), pady=(7, 7))
+        self.info_value3 = ttk.Label(
+            self.info_section, text="", font=("TkDefaultFont", 11))
+        # self.info_value3.grid(row=2, column=1, pady=(3, 3))
+
         # Make the frames expandable
         self.grid_rowconfigure(1, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=0)
+        self.grid_columnconfigure((0), weight=1)
         self.left_frame.grid_rowconfigure((2, 3, 4, 5, 6), weight=1)
-        self.left_frame.grid_columnconfigure((2, 3), weight=1)
-        # self.right_frame.grid_rowconfigure((2, 3,4), weight=1)
+        self.left_frame.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
+        self.right_frame.grid_columnconfigure((1, 2, 3), weight=1)
+        self.right_frame.grid_rowconfigure((2, 3, 4), weight=1)
 
         self.mainloop()
 

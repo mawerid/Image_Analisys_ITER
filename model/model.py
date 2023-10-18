@@ -18,7 +18,7 @@ def yolo(image_name: str, size: int) -> None:
 
     detect.main(['--weights', weights_path, '--source', image_path,
                  '--img-size', str(size), '--save-txt', '--no-trace',
-                 '--project', project_path, '--name', image_name[:-4]])
+                 '--project', project_path, '--name', image_name[:-4], '--class', '0'])
 
 
 def graph(image_name: str) -> None:
