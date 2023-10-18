@@ -22,25 +22,33 @@ def yolo(image_name: str, size: int) -> None:
 
 
 def graph(image_name: str) -> None:
-    resolution, units, width = scale.load(image_name)
+    try:
+        resolution, units, width = scale.load(image_name)
 
-    sizes = getSizes(loadLabels(image_name), width)
-    sizes = sizes * (resolution / width)
+        sizes = getSizes(loadLabels(image_name), width)
+        sizes = sizes * (resolution / width)
+        plt.xlabel("Scale," + units)
 
-    sns.set_theme()
+    except TypeError:
+        sizes = getSizes(loadLabels(image_name), 640)
+
     plt.hist(sizes)
-    plt.xlabel("Scale," + units)
+    sns.set_theme()
     plt.ylabel("Particles count")
     plt.legend(["Distribution of sizes"])
 
 
 def loadImage(image_name: str, info: np.ndarray) -> Tuple[np.ndarray, int, str]:
-    resolution, units, _ = scale.load(image_name)
     path = os.path.join(
         project_path, image_name[:-4], image_name)
     image = cv.imread(path)
+    resolution = 0
+    units = "No scale"
+
     if type(info) == np.ndarray and info.size > 0:
-        info = cv.cvtColor(info, cv.COLOR_GRAY2RGB)
+        resolution, units, _ = scale.load(image_name)
+        if len(image.shape) == 3:
+            info = cv.cvtColor(info, cv.COLOR_GRAY2RGB)
         info = cv.resize(info, (640, 75), interpolation=cv.INTER_AREA)
         image = np.vstack([image, info])
 

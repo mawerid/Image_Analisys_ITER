@@ -66,18 +66,11 @@ class App(tk.Tk):
             self.image2_label.config(image=conv_photo)
             self.image2_label.image = conv_photo
 
-            self.info_value1.config(text=self.info_label1.cget(
-                "text") + self.image_files[self.current_image_index])
-            self.info_value1.text = self.info_label1.cget(
-                "text") + self.image_files[self.current_image_index]
-            self.info_value2.config(
-                text=self.info_label2.cget("text") + str(self.image_shape))
-            self.info_value2.text = self.info_label2.cget(
-                "text") + str(self.image_shape)
-            self.info_value3.config(text=self.info_label3.cget(
-                "text") + (str(self.resolution) + self.scale))
-            self.info_value3.text = self.info_label3.cget(
-                "text") + (str(self.resolution) + self.scale)
+            self.info_value1.config(
+                text=self.image_files[self.current_image_index])
+            self.info_value2.config(text=str(self.image_shape))
+            self.info_value3.config(
+                text=str(self.resolution) + ' ' + self.scale)
 
     def show_previous_image(self):
         if self.current_image_index > 0:
@@ -182,29 +175,28 @@ class App(tk.Tk):
 
         # Info section
         self.info_section = ttk.Frame(self.right_frame, padding=(7, 7))
-        self.info_section.grid(row=2, column=0, rowspan=3, pady=(7, 7))
+        self.info_section.grid(row=2, column=1, rowspan=3, pady=(7, 7))
 
         self.info_label1 = ttk.Label(
             self.info_section, text="Image name: ", font=("TkDefaultFont", 11))
-        self.info_label1.grid(row=0, column=0, padx=(7, 7), pady=(7, 7))
-        # self.info_label1.pack(side = tk.LEFT)
+        self.info_label1.grid(row=0, column=0, padx=(3, 3), pady=(7, 7))
         self.info_value1 = ttk.Label(
             self.info_section, text="", font=("TkDefaultFont", 11))
-        # self.info_value1.grid(row=0, column=1, pady=(3, 3), padx=(0, 3))
+        self.info_value1.grid(row=0, column=1, pady=(3, 3), padx=(0, 3))
 
         self.info_label2 = ttk.Label(
             self.info_section, text="Image size: ", font=("TkDefaultFont", 11))
-        self.info_label2.grid(row=1, column=0, padx=(7, 7), pady=(7, 7))
+        self.info_label2.grid(row=1, column=0, padx=(3, 3), pady=(3, 3))
         self.info_value2 = ttk.Label(
             self.info_section, text="", font=("TkDefaultFont", 11))
-        # self.info_value2.grid(row=1, column=1, pady=(3, 3), padx=(0, 3))
+        self.info_value2.grid(row=1, column=1, pady=(3, 3), padx=(0, 3))
 
         self.info_label3 = ttk.Label(
             self.info_section, text="Scale: ", font=("TkDefaultFont", 11))
-        self.info_label3.grid(row=2, column=0, padx=(7, 7), pady=(7, 7))
+        self.info_label3.grid(row=2, column=0, padx=(3, 3), pady=(3, 3))
         self.info_value3 = ttk.Label(
             self.info_section, text="", font=("TkDefaultFont", 11))
-        # self.info_value3.grid(row=2, column=1, pady=(3, 3))
+        self.info_value3.grid(row=2, column=1, pady=(3, 3))
 
         # Make the frames expandable
         self.grid_rowconfigure(1, weight=1)
