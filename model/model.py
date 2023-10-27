@@ -49,7 +49,7 @@ def loadImage(image_name: str, info: np.ndarray) -> Tuple[np.ndarray, int, str]:
         resolution, units, _ = scale.load(image_name)
         if len(image.shape) == 3:
             info = cv.cvtColor(info, cv.COLOR_GRAY2RGB)
-        info = cv.resize(info, (640, 75), interpolation=cv.INTER_AREA)
+        # info = cv.resize(info, (640, 75), interpolation=cv.INTER_AREA)
         image = np.vstack([image, info])
 
     return image, resolution, units
@@ -92,8 +92,10 @@ def run(image: np.ndarray, image_name: str) -> Tuple[np.ndarray, int, str]:
         image = image[0:width, 0:width]
         _, _, _ = scale.parse(info, image_name)
 
-    image = cv.resize(image, (640, 640), interpolation=cv.INTER_AREA)
+    # image = cv.resize(image, (640, 640), interpolation=cv.INTER_AREA)
     height, width = image.shape
+
+    print(image.shape)
 
     image_path = os.path.join("data_resized", image_name)
     cv.imwrite(image_path, image)

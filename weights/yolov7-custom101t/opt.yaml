@@ -5,8 +5,8 @@ hyp: data/hyp.scratch.tiny.yaml
 epochs: 800
 batch_size: 8
 img_size:
-- 640
-- 640
+- 1024
+- 1024
 rect: false
 resume: false
 nosave: false
@@ -23,7 +23,7 @@ adam: false
 sync_bn: false
 local_rank: -1
 workers: 8
-project: runs/train
+project: weights
 entity: null
 name: yolov7-custom101t
 exist_ok: false
@@ -39,5 +39,5 @@ freeze:
 v5_metric: false
 world_size: 1
 global_rank: -1
-save_dir: runs\train\yolov7-custom101t
+save_dir: weights/yolov7-custom101t
 total_batch_size: 8

@@ -5,6 +5,7 @@ data_test*
 train/
 valid/
 labels/
+data_all/
 full/
 runs/
 *.pyc
