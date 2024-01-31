@@ -8,17 +8,32 @@ from typing import Tuple
 import detect
 
 
-weights_path = os.path.join(
-    "weights", "yolov7-custom101t", "weights", "best.pt")
+weights_path = os.path.join("weights", "yolov7-custom101t", "weights", "best.pt")
 project_path = "detected"
 
 
 def yolo(image_name: str, size: int) -> None:
     image_path = os.path.join("data_resized", image_name)
 
-    detect.main(['--weights', weights_path, '--source', image_path,
-                 '--img-size', str(size), '--save-txt', '--no-trace',
-                 '--project', project_path, '--name', image_name[:-4], '--class', '0'])
+    detect.main(
+        [
+            "--weights",
+            weights_path,
+            "--source",
+            image_path,
+            "--img-size",
+            str(size),
+            "--save-txt",
+            "--no-trace",
+            "--nosave",
+            "--project",
+            project_path,
+            "--name",
+            image_name[:-4],
+            "--class",
+            "0",
+        ]
+    )
 
 
 def graph(image_name: str) -> None:
@@ -39,8 +54,7 @@ def graph(image_name: str) -> None:
 
 
 def loadImage(image_name: str, info: np.ndarray) -> Tuple[np.ndarray, int, str]:
-    path = os.path.join(
-        project_path, image_name[:-4], image_name)
+    path = os.path.join(project_path, image_name[:-4], image_name)
     image = cv.imread(path)
     resolution = 0
     units = "No scale"
@@ -57,14 +71,15 @@ def loadImage(image_name: str, info: np.ndarray) -> Tuple[np.ndarray, int, str]:
 
 def loadLabels(image_name: str) -> np.ndarray:
     path = os.path.join(
-        project_path, image_name[:-4], "labels", image_name[:-3] + 'txt')
+        project_path, image_name[:-4], "labels", image_name[:-3] + "txt"
+    )
     return np.loadtxt(path)
 
 
 def getSizes(labels: np.ndarray, size: int) -> np.ndarray:
     sizes = []
     for label in labels:
-        sizes.append((round(label[3]*size) + round(label[4]*size)) // 2)
+        sizes.append((round(label[3] * size) + round(label[4] * size)) // 2)
     sizes = np.array(sizes)
     sizes = np.sqrt(sizes / np.pi)
     return sizes
@@ -73,7 +88,7 @@ def getSizes(labels: np.ndarray, size: int) -> np.ndarray:
 def getCoor(labels: np.ndarray, size: int) -> np.ndarray:
     coordinates = []
     for label in labels:
-        coordinates.append((round(label[1]*size), round(label[2]*size)))
+        coordinates.append((round(label[1] * size), round(label[2] * size)))
     return np.array(coordinates)
 
 
@@ -82,8 +97,7 @@ def run(image: np.ndarray, image_name: str) -> Tuple[np.ndarray, int, str]:
     info = None
 
     if scale.load(image_name) != None:
-        image, resolution, units = loadImage(
-            image_name, image[width:height, 0:width])
+        image, resolution, units = loadImage(image_name, image[width:height, 0:width])
         return image, resolution, units
 
     # divide picture in 2 parts (photo and info)
